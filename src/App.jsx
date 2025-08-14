@@ -17,7 +17,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
-  const [isloading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchMovies = async searchTerm => {
     setIsLoading(true);
@@ -26,13 +26,17 @@ const App = () => {
       const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
-        throw new Error(`Faiiled to fetch movies: ${response.statusText}`);
+        throw new Error(`Faiiled to fetch movies`);
       }
       const data = await response.json();
 
       if (data.Response === "False") {
         setErrorMessage(data.Error || "Failed to fetchmovies");
+        setMovieList([]);
+        return;
       }
+
+      setMovieList(data.results || []);
     } catch (error) {
       console.error(`Error fetching movies: ${error}`);
       setErrorMessage("Failed to fetch movies. Please try again later.");
@@ -55,9 +59,25 @@ const App = () => {
             Find <span className="text-gradient">Movies</span> You'll Enjoy
             Without the Hassle
           </h1>
+
+          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-        <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <section className="all-movies">
+          <h2>All Movies</h2>
+
+          {isLoading ? (
+            <p className="text-white">Loading...</p>
+          ) : errorMessage ? (
+            <p className="text-red-500">{errorMessage}</p>
+          ) : (
+            <ul>
+              {movieList.map(movie => (
+                <p className="text-white">{movie.title} hello</p>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
