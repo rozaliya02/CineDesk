@@ -1,9 +1,49 @@
-import React from "react";
 import Search from "./components/Search";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const API_BASE_URL = "https://api.themoviedb.org/3";
+
+const API_KEY = import.meta.env.VITE_TMBD_API_KEY;
+
+const API_OPTIONS = {
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [movieList, setMovieList] = useState([]);
+  const [isloading, setIsLoading] = useState(false);
+
+  const fetchMovies = async searchTerm => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const response = await fetch(endpoint, API_OPTIONS);
+      if (!response.ok) {
+        throw new Error(`Faiiled to fetch movies: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (data.Response === "False") {
+        setErrorMessage(data.Error || "Failed to fetchmovies");
+      }
+    } catch (error) {
+      console.error(`Error fetching movies: ${error}`);
+      setErrorMessage("Failed to fetch movies. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovies();
+  }, []);
   return (
     <main>
       <div className="pattern" />
