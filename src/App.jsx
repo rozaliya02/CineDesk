@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount } from "./appwrite";
+import { getTradingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -23,6 +23,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
+  const [trandingMovies, setTrandingMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
@@ -62,9 +63,25 @@ const App = () => {
     }
   };
 
+  const loadTrandingMovies = async () => {
+    try {
+      const movies = await getTradingMovies();
+
+      setTrandingMovies(movies);
+    }
+    catch(error){
+      console.log(`Error fetching tranding movies: ${error}`)
+    }
+  }
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadTrandingMovies()
+  }, [])
+
+
   return (
     <main>
       <div className="pattern" />
@@ -80,8 +97,26 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+        {trandingMovies.length > 0 && (
+          
+          <section className="trending">
+            <h2>Tranding Movies</h2>
+            <ul>
+              {trandingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              )
+              )}
+            </ul>
+          </section>
+          
+          )}
+        
+
         <section className="all-movies">
-          <h2 className="mt-[40px]">All Movies</h2>
+          <h2>All Movies</h2>
 
           {isLoading ? (
             <Spinner />
